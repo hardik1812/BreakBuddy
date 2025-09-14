@@ -2,7 +2,7 @@
 
 BreakBuddy is a Flutter application designed specifically for students of VIT Chennai. It allows you to manage your daily class schedule and instantly check if your friends are currently in a class or free, helping you find the perfect time to connect.
 
-![App Screenshot](https://via.placeholder.com/800x450.png?text=App+UI+Placeholder)
+
 
 ---
 
