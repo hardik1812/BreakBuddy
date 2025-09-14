@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "937065189954",
+    "project_id": "vtop-6bfeb",
+    "storage_bucket": "vtop-6bfeb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:937065189954:android:2bcb3ef432e37aa71653db",
+        "android_client_info": {
+          "package_name": "com.example.timetabel"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6p1JF_GCQhTbwgT2R0e9x2hDrOlG2M88"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
