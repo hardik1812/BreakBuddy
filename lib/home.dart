@@ -26,6 +26,7 @@ class _HomeAppState extends State<HomeApp> {
     'Sat': 'Saturday',
   };
   String? userId;
+  final Set<String> _expandedTiles = {};
 
   @override
   void initState() {
@@ -135,6 +136,57 @@ class _HomeAppState extends State<HomeApp> {
     }
   }
 
+  Future<void> _deleteClass(String documentId) async {
+    if (userId == null) {
+      Fluttertoast.showToast(msg: 'Error: User not identified.');
+      return;
+    }
+    try {
+      await FirebaseFirestore.instance
+          .collection('timetable')
+          .doc(userId)
+          .collection(day)
+          .doc(documentId)
+          .delete();
+
+      Fluttertoast.showToast(
+        msg: "Class deleted successfully",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.green,
+        textColor: Colors.white,
+      );
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: "Error deleting class: $e",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(color: Colors.white70),
+            softWrap: true,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -232,25 +284,89 @@ class _HomeAppState extends State<HomeApp> {
                               children: snapshot.data!.docs
                                   .map((DocumentSnapshot document) {
                                 Map<String, dynamic> data =
-                                    document.data()! as Map<String, dynamic>;
+                                    document.data() as Map<String, dynamic>;
+                                final documentId = document.id;
+                                final isExpanded = _expandedTiles.contains(documentId);
                                 return Container(
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(begin: Alignment.topLeft,end: Alignment.bottomRight,colors: [Color(0xFF141E30),Color(0xFF243B55)]),
                                     borderRadius: BorderRadius.circular(15),
                                   ),
                                   margin: EdgeInsets.symmetric(vertical: 8.0),
-                                  child: ListTile(
-                                    title: Text(
-                                      data['className'] ?? 'No Subject',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                    subtitle: Text(
-                                      'Time: ${_formatTimeForDisplay(data['startTime'], context)} - ${_formatTimeForDisplay(data['endTime'], context)}',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                    trailing: Icon(
-                                      Icons.keyboard_arrow_down_sharp,
-                                      color: Colors.white,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(15),
+                                    child: ExpansionTile(
+                                      key: PageStorageKey(documentId),
+                                      title: Text(
+                                        data['className'] ?? 'No Subject',
+                                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                      ),
+                                      subtitle: Text(
+                                        'Time: ${_formatTimeForDisplay(data['startTime'], context)} - ${_formatTimeForDisplay(data['endTime'], context)}',
+                                        style: TextStyle(color: Colors.white70),
+                                      ),
+                                      onExpansionChanged: (bool expanded) {
+                                        setState(() {
+                                          if (expanded) {
+                                            _expandedTiles.add(documentId);
+                                          } else {
+                                            _expandedTiles.remove(documentId);
+                                          }
+                                        });
+                                      },
+                                      initiallyExpanded: isExpanded,
+                                      collapsedIconColor: Colors.white,
+                                      iconColor: Colors.white,
+                                      children: <Widget>[
+                                        Padding(
+                                          padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Divider(color: Colors.white30),
+                                              SizedBox(height: 8),
+                                              _buildDetailRow('Room:', data['roomNumber'] ?? 'N/A'),
+                                              SizedBox(height: 4),
+                                              _buildDetailRow('Teacher:', data['teacherName']?.isNotEmpty == true ? data['teacherName'] : 'N/A'),
+                                              SizedBox(height: 4),
+                                              _buildDetailRow('Type:', data['classType'] ?? 'N/A'),
+                                              SizedBox(height: 8),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.end,
+                                                children: [
+                                                  TextButton.icon(
+                                                    onPressed: () {
+                                                      showDialog(
+                                                        context: context,
+                                                        builder: (BuildContext ctx) => AlertDialog(
+                                                          backgroundColor: Color(0xFF243B55),
+                                                          title: Text('Confirm Delete', style: TextStyle(color: Colors.white)),
+                                                          content: Text('Are you sure you want to delete this class?', style: TextStyle(color: Colors.white70)),
+                                                          actions: <Widget>[
+                                                            TextButton(
+                                                              child: Text('Cancel', style: TextStyle(color: Colors.white)),
+                                                              onPressed: () => Navigator.of(ctx).pop(),
+                                                            ),
+                                                            TextButton(
+                                                              child: Text('Delete', style: TextStyle(color: Colors.redAccent)),
+                                                              onPressed: () {
+                                                                Navigator.of(ctx).pop();
+                                                                _deleteClass(document.id);
+                                                              },
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      );
+                                                    },
+                                                    icon: Icon(Icons.delete_outline, color: Colors.redAccent),
+                                                    label: Text('Delete', style: TextStyle(color: Colors.redAccent)),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 );

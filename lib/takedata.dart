@@ -40,7 +40,6 @@ class _AddTimetablePageState extends State<AddTimetablePage> {
     'Thursday',
     'Friday',
     'Saturday',
-    'Sunday'
   ];
 
   @override
@@ -278,7 +277,7 @@ class _AddTimetablePageState extends State<AddTimetablePage> {
                 controller: entry.roomNumberController,
                 decoration: const InputDecoration(labelText: 'Room Number'),
                 validator: (value) => value!.trim().isEmpty ? 'Required' : null,
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.text,
               ),
               const SizedBox(height: 16),
               TextFormField(
